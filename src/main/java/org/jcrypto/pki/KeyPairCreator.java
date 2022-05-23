@@ -1,24 +1,24 @@
-package org.jcrypto.core;
+package org.jcrypto.pki;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 
-public class KeyPair extends CommonAttributes {
+public class KeyPairCreator extends CommonAttributes {
     private final int fKeySize;
     private final String fAlgorithm;
 
-    public KeyPair(String algorithm, String provider, int fKeySize, SecureRandom fSecureRandom) {
+    private KeyPairCreator(String algorithm, String provider, int fKeySize, SecureRandom secureRandom) {
+        super(provider, secureRandom);
         this.fKeySize = fKeySize;
-        this.fSecureRandom = fSecureRandom;
         this.fAlgorithm = algorithm;
-        this.fProvider = provider;
     }
 
-    public java.security.KeyPair generate() throws NoSuchAlgorithmException, NoSuchProviderException {
+    public KeyPair create() throws NoSuchAlgorithmException, NoSuchProviderException {
         KeyPairGenerator keyGen;
         if (StringUtils.isBlank(fProvider))
             keyGen = KeyPairGenerator.getInstance(fAlgorithm);
@@ -34,7 +34,7 @@ public class KeyPair extends CommonAttributes {
         return keyGen.generateKeyPair();
     }
 
-    public static class Builder extends CommonBuilder {
+    public static class Builder extends CommonAttributes.Builder {
         private int fKeySize;
         private String fAlgorithm;
 
@@ -48,14 +48,15 @@ public class KeyPair extends CommonAttributes {
             return this;
         }
 
-        public KeyPair generate() {
+        public KeyPairCreator build() {
             checkDefaults();
-            return new KeyPair(fAlgorithm, fProvider, fKeySize, fSecureRandom);
+            return new KeyPairCreator(fAlgorithm, fProvider, fKeySize, fSecureRandom);
         }
 
-        private void checkDefaults() {
+        @Override
+        protected void checkDefaults() {
             if (StringUtils.isBlank(fAlgorithm))
-                throw new IllegalArgumentException("Algorithm should be specified to generate Keys");
+                throw new IllegalArgumentException("Algorithm is not be specified to generate Keys");
         }
     }
 }
