@@ -87,12 +87,12 @@ public class X509CertificateCreator extends CommonAttributes {
             return this;
         }
 
-        public Builder withIssuer(Map<Object, String> issuerAttributes) {
+        public Builder withIssuer(Map<JCryptoUtil.CertAttr, String> issuerAttributes) {
             fIssuer = JCryptoUtil.createNameFromMap(issuerAttributes);
             return this;
         }
 
-        public Builder withSubject(Map<Object, String> subjectAttributes) {
+        public Builder withSubject(Map<JCryptoUtil.CertAttr, String> subjectAttributes) {
             fSubject = JCryptoUtil.createNameFromMap(subjectAttributes);
             return this;
         }
