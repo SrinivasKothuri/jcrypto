@@ -53,12 +53,12 @@ public class JCryptoUtil {
 
         Map<CertAttr, String> attrsMap = new HashMap<>();
         for (String name: names) {
-            String[] nameSplit = StringUtils.split(name);
+            String[] nameSplit = StringUtils.split(name, '=');
             if (ArrayUtils.getLength(nameSplit) < 2 ||
                     !EnumUtils.isValidEnumIgnoreCase(CertAttr.class, nameSplit[0]) ||
                     StringUtils.isBlank(nameSplit[1]))
                 continue;
-            attrsMap.put(CertAttr.valueOf(nameSplit[0].trim().toLowerCase()), nameSplit[1].trim());
+            attrsMap.put(CertAttr.valueOf(nameSplit[0].trim().toUpperCase()), nameSplit[1].trim());
         }
         return attrsMap;
     }

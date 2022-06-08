@@ -1,6 +1,7 @@
 package org.jcrypto.pki;
 
 import com.google.common.collect.ImmutableMap;
+import org.jcrypto.util.JCryptoUtil;
 import org.jcrypto.util.JCryptoUtil.CertAttr;
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,6 +13,9 @@ import java.security.cert.X509Certificate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class X509CertificateCreatorTest {
     @Test
@@ -23,11 +27,11 @@ public class X509CertificateCreatorTest {
                 .withValidityStart(new Date()).withValidityEnd(Date.from(LocalDateTime.of(
                         2024, 8, 15, 00, 00).toInstant(ZoneOffset.UTC)))
                 .withIssuer(subjectAndIssuer).withSubject(subjectAndIssuer).build().create();
-        //IOUtils.write(x509Certificate.getTBSCertificate(), new FileOutputStream("cert.der"));
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
         Certificate certificate = certFactory.generateCertificate(new ByteArrayInputStream(x509Certificate.getEncoded()));
         Assert.assertTrue(certificate instanceof X509Certificate);
         x509Certificate = (X509Certificate) certificate;
-        System.out.println(x509Certificate.getSubjectX500Principal().getName());
+        Map<CertAttr, String> attrMap = JCryptoUtil.parseX509Name(x509Certificate.getSubjectX500Principal().getName());
+        assertEquals(subjectAndIssuer, attrMap);
     }
 }
