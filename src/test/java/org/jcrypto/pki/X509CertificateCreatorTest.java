@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.security.KeyPair;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -22,11 +23,13 @@ public class X509CertificateCreatorTest {
     public void testSelfSignedX509CertificateCreation() throws Exception {
         ImmutableMap<CertAttr, String> subjectAndIssuer =
                 ImmutableMap.of(CertAttr.CN, "skothuri.home.com", CertAttr.C, "IN", CertAttr.O, "Home");
-        X509Certificate x509Certificate = new X509CertificateCreator.Builder().withKeySize(2048)
-                .withKeyType("RSA").withSigningAlgorithm("SHA256withRSA")
+        KeyPair keyPair = new KeyPairCreator.Builder().withKeySize(2048).withAlgorithm("RSA").build().create();
+        X509Certificate x509Certificate = new X509CertificateCreator.Builder()
+                .withPrivateKey(keyPair.getPrivate())
+                .withSigningAlgorithm("SHA256withRSA")
                 .withValidityStart(new Date()).withValidityEnd(Date.from(LocalDateTime.of(
                         2024, 8, 15, 00, 00).toInstant(ZoneOffset.UTC)))
-                .withIssuer(subjectAndIssuer).withSubject(subjectAndIssuer).build().create();
+                .withIssuer(subjectAndIssuer).withSubject(subjectAndIssuer).build().create(keyPair.getPublic());
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
         Certificate certificate = certFactory.generateCertificate(new ByteArrayInputStream(x509Certificate.getEncoded()));
         Assert.assertTrue(certificate instanceof X509Certificate);

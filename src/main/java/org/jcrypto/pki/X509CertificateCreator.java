@@ -11,10 +11,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.jcrypto.util.JCryptoUtil;
 
+import java.io.IOException;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -23,33 +23,29 @@ import java.util.Map;
 
 public class X509CertificateCreator extends CommonAttributes {
 
-    private String fKeyType;
+    private PrivateKey fPrivateKey;
     private String fSigningAlgorithm;
     private X500Name fIssuer;
     private X500Name fSubject;
     private Date fValidityStart;
     private Date fValidityEnd;
-    private int fKeySize;
 
-    private X509CertificateCreator(String provider, SecureRandom secureRandom, String keyType,
+    private X509CertificateCreator(String provider, SecureRandom secureRandom, PrivateKey privateKey,
                                    String signingAlgorithm, X500Name issuer, X500Name subject, Date validityStart,
-                                   Date validityDuration, int keySize) {
+                                   Date validityDuration) {
         super(provider, secureRandom);
-        fKeyType = keyType;
+        fPrivateKey = privateKey;
         fSigningAlgorithm = signingAlgorithm;
         fIssuer = issuer;
         fSubject = subject;
         fValidityStart = validityStart;
         fValidityEnd = validityDuration;
-        fKeySize = keySize;
     }
 
-    public X509Certificate create() throws NoSuchAlgorithmException, NoSuchProviderException,
-            OperatorCreationException, CertificateException {
+    public X509Certificate create(PublicKey publicKey) throws OperatorCreationException, CertificateException {
 
         KeyPairCreator.Builder builder = new KeyPairCreator.Builder();
-        KeyPair keyPair = builder.withKeySize(fKeySize).withAlgorithm(fKeyType).build().create();
-        byte[] encodedPublicKey = keyPair.getPublic().getEncoded();
+        byte[] encodedPublicKey = publicKey.getEncoded();
 
         X509v3CertificateBuilder v3CertBuild =
                 new X509v3CertificateBuilder(fIssuer, new BigInteger(String.valueOf(RandomUtils.nextLong())),
@@ -57,33 +53,37 @@ public class X509CertificateCreator extends CommonAttributes {
                         SubjectPublicKeyInfo.getInstance(ASN1Sequence.getInstance(encodedPublicKey)));
 
         ContentSigner sigGen = new JcaContentSignerBuilder(fSigningAlgorithm)
-                /*.setProvider("BC")*/.build(keyPair.getPrivate());
+                /*.setProvider("BC")*/.build(fPrivateKey);
 
         return new JcaX509CertificateConverter()./*setProvider("BC").*/getCertificate(v3CertBuild.build(sigGen));
     }
 
+    public void store(PublicKey publicKey, String targetDir, String fileName, JCryptoUtil.KeyFormat format)
+            throws OperatorCreationException, CertificateException, IOException {
+        X509Certificate certificate = create(publicKey);
+        byte[] encoded = certificate.getEncoded();
+
+        if (format == JCryptoUtil.KeyFormat.PEM)
+            JCryptoUtil.storePEMCertificate(targetDir, fileName, encoded);
+        else
+            JCryptoUtil.storeDERCertificate(targetDir, fileName, encoded);
+    }
+
     public static class Builder extends CommonAttributes.Builder {
-        private String fKeyType;
-        private int fKeySize = -1;
+        private PrivateKey fPrivateKey;
         private String fSigningAlgorithm;
         private X500Name fIssuer;
         private X500Name fSubject;
         private Date fValidityStart;
         private Date fValidityEnd;
 
-
-        public Builder withKeyType(String keyType) {
-            fKeyType = keyType;
-            return this;
-        }
-
         public Builder withSigningAlgorithm(String signingAlgorithm) {
             fSigningAlgorithm = signingAlgorithm;
             return this;
         }
 
-        public Builder withKeySize(int keySize) {
-            fKeySize = keySize;
+        public Builder withPrivateKey(PrivateKey privateKey) {
+            fPrivateKey = privateKey;
             return this;
         }
 
@@ -108,18 +108,20 @@ public class X509CertificateCreator extends CommonAttributes {
         }
 
         public X509CertificateCreator build() {
-            return new X509CertificateCreator(fProvider, fSecureRandom, fKeyType, fSigningAlgorithm,
-                    fIssuer, fSubject, fValidityStart, fValidityEnd, fKeySize);
+            return new X509CertificateCreator(fProvider, fSecureRandom, fPrivateKey, fSigningAlgorithm,
+                    fIssuer, fSubject, fValidityStart, fValidityEnd);
         }
 
         @Override
         protected void checkDefaults() {
-            if (fKeyType == null)
-                throw new IllegalArgumentException("KeyType is not specified to create Certificate");
+            if (fPrivateKey == null)
+                throw new IllegalArgumentException("Provate Key is not specified to create Certificate");
             if (fSigningAlgorithm == null)
                 throw new IllegalArgumentException("Signing Algorithm is not specified to create Certificate");
+            if (fSubject == null)
+                throw new IllegalArgumentException("One or more X500Name of Subject are not specified to create Certificate");
             if (fIssuer == null)
-                throw new IllegalArgumentException("One or more X500Name are not specified to create Certificate");
+                throw new IllegalArgumentException("One or more X500Name of Issuer are not specified to create Certificate");
         }
     }
 }

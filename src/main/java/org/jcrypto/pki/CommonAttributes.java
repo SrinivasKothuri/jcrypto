@@ -8,8 +8,8 @@ public class CommonAttributes {
     protected SecureRandom fSecureRandom;
 
     public CommonAttributes(String provider, SecureRandom secureRandom) {
-        this.fProvider = provider;
-        this.fSecureRandom = secureRandom;
+        fProvider = provider;
+        fSecureRandom = secureRandom;
     }
 
     public abstract static class Builder {

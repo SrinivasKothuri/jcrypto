@@ -1,5 +1,6 @@
 package org.jcrypto.util;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,12 +9,25 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JCryptoUtil {
-    public static enum CertAttr {
+
+    public static final String CERT_PREFIX = "-----BEGIN CERTIFICATE-----";
+    public static final String CERT_SUFFIX = "-----END CERTIFICATE-----";
+    public static final String KEY_PREFIX = "-----BEGIN RSA PRIVATE KEY-----";
+    public static final String KEY_SUFFIX = "-----END RSA PRIVATE KEY-----";
+
+    public enum CertAttr {
         CN(0x01, BCStyle.CN, "Common Name"), O(0x02, BCStyle.O, "Organization"),
         OU(0x04, BCStyle.OU, "Organization Unit"), C(0x08, BCStyle.C, "Country"),
         L(0x10, BCStyle.L, "Locality"), ST(0x20, BCStyle.ST, "State or Province"),
@@ -37,6 +51,10 @@ public class JCryptoUtil {
         public String getDefaultName() {
             return fDefaultName;
         }
+    }
+
+    public enum KeyFormat {
+        PEM, DER
     }
 
     public static X500Name createNameFromMap(Map<CertAttr, String> certAttributes) {
@@ -66,5 +84,38 @@ public class JCryptoUtil {
     public static String getLocalizedName(CertAttr certAttr) {
         //TODO: handle localization
         return certAttr.getDefaultName();
+    }
+
+    public static void storePEMCertificate(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.PEM, encoded, CERT_PREFIX, CERT_SUFFIX);
+    }
+
+    public static void storePEMKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.PEM, encoded, KEY_PREFIX, KEY_SUFFIX);
+    }
+
+    public static void storeDERCertificate(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.PEM, encoded, null, null);
+    }
+
+    public static void storeDERKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.PEM, encoded, null, null);
+    }
+
+    public static void store(String sourceDir, String fileName, JCryptoUtil.KeyFormat publicKeyFormat, byte[] encoded,
+                           String prefix, String suffix) throws IOException {
+        FileOutputStream keyFile = new FileOutputStream(new File(sourceDir, fileName));
+        if (publicKeyFormat == KeyFormat.DER)
+            IOUtils.write(encoded, keyFile);
+        else {
+            StringWriter writer = new StringWriter();
+            writer.write(prefix);
+            writer.write(Base64.getMimeEncoder(64, System.lineSeparator().getBytes(StandardCharsets.UTF_8))
+                    .encodeToString(encoded));
+            writer.write(System.lineSeparator());
+            writer.write(suffix);
+            IOUtils.write(writer.toString(), keyFile, StandardCharsets.UTF_8);
+        }
+        IOUtils.closeQuietly(keyFile);
     }
 }

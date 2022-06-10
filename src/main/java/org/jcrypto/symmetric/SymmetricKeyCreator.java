@@ -39,7 +39,7 @@ public class SymmetricKeyCreator {
 		@Override
 		protected void checkDefaults() {
 			if (StringUtils.isBlank(fAlgorithm))
-				throw new IllegalArgumentException("Algorithm is not be specified to generate Key");
+				throw new IllegalArgumentException("Algorithm is not specified to generate Key");
 		}
 	}
 
