@@ -1,6 +1,7 @@
 package org.jcrypto.pki;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jcrypto.annotations.JCryptoAttr;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -9,7 +10,9 @@ import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 
 public class KeyPairCreator extends CommonAttributes {
+    @JCryptoAttr(required = true)
     private final int fKeySize;
+    @JCryptoAttr(required = true)
     private final String fAlgorithm;
 
     private KeyPairCreator(String algorithm, String provider, int fKeySize, SecureRandom secureRandom) {

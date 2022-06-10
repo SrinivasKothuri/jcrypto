@@ -1,6 +1,7 @@
 package org.jcrypto.pki;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jcrypto.annotations.JCryptoAttr;
 import sun.misc.IOUtils;
 
 import java.io.IOException;
@@ -14,7 +15,9 @@ import java.security.SignatureException;
 
 public class Verifier extends CommonAttributes.Builder {
 
+	@JCryptoAttr(required = true)
 	private String fAlgorithm;
+	@JCryptoAttr(required = true)
 	private PublicKey fPublicKey;
 
 	public Verifier publicKey(PublicKey publicKey) {

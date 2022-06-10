@@ -1,5 +1,6 @@
 package org.jcrypto.util;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.EnumUtils;
@@ -8,17 +9,20 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.joda.time.MutableDateTime;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 public class JCryptoUtil {
 
@@ -26,6 +30,9 @@ public class JCryptoUtil {
     public static final String CERT_SUFFIX = "-----END CERTIFICATE-----";
     public static final String KEY_PREFIX = "-----BEGIN RSA PRIVATE KEY-----";
     public static final String KEY_SUFFIX = "-----END RSA PRIVATE KEY-----";
+
+    private static final ImmutableMap<CertAttr, String> EMPTY_NAME =
+            ImmutableMap.of(CertAttr.CN, EMPTY, CertAttr.C, EMPTY, CertAttr.O, EMPTY);
 
     public enum CertAttr {
         CN(0x01, BCStyle.CN, "Common Name"), O(0x02, BCStyle.O, "Organization"),
@@ -117,5 +124,21 @@ public class JCryptoUtil {
             IOUtils.write(writer.toString(), keyFile, StandardCharsets.UTF_8);
         }
         IOUtils.closeQuietly(keyFile);
+    }
+
+    public static Date daysFrom(Date startDate, int days) {
+        MutableDateTime dateTime = new MutableDateTime(startDate);
+        dateTime.addDays(days);
+        return dateTime.toDate();
+    }
+
+    public static Date daysFromNow(int days) {
+        MutableDateTime dateTime = new MutableDateTime();
+        dateTime.addDays(days);
+        return dateTime.toDate();
+    }
+
+    public static X500Name emptyAttrMap() {
+        return createNameFromMap(EMPTY_NAME);
     }
 }

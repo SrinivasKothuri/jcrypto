@@ -1,7 +1,7 @@
 package org.jcrypto.pki;
 
 import com.google.common.collect.ImmutableMap;
-import org.jcrypto.JCryptoTestUtils;
+import org.jcrypto.util.JCryptoUtil;
 import org.jcrypto.util.JCryptoUtil.CertAttr;
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ public class CertChainTest {
 				.withIssuer(EMPTY_NAME)
 				.withSubject(EMPTY_NAME)
 				.withValidityStart(new Date())
-				.withValidityEnd(JCryptoTestUtils.daysFromNow(365))
+				.withValidityEnd(JCryptoUtil.daysFromNow(365))
 				.build().create(childKeyPair.getPublic());
 
 		x509Certificate.verify(rootKeyPair.getPublic());

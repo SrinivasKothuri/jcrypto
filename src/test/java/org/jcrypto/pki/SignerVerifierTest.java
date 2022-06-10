@@ -12,7 +12,7 @@ public class SignerVerifierTest {
 
 	@Test
 	public void testSignAndVerify() throws Exception {
-		String testData = "Srinivas";
+		String testData = "0123456789";
 
 		KeyPair keyPair = new KeyPairCreator.Builder().withKeySize(2048).withAlgorithm("RSA").build().create();
 		byte[] md5withRSAS = new Signer().algorithm("MD5withRSA").privateKey(keyPair.getPrivate())

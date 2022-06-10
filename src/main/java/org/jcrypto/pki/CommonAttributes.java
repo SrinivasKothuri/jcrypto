@@ -1,10 +1,14 @@
 package org.jcrypto.pki;
 
+import org.jcrypto.annotations.JCryptoAttr;
+
 import java.security.SecureRandom;
 
 public class CommonAttributes {
 
+    @JCryptoAttr
     protected String fProvider;
+    @JCryptoAttr
     protected SecureRandom fSecureRandom;
 
     public CommonAttributes(String provider, SecureRandom secureRandom) {

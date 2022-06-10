@@ -9,6 +9,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.jcrypto.annotations.JCryptoAttr;
 import org.jcrypto.util.JCryptoUtil;
 
 import java.io.IOException;
@@ -21,13 +22,23 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Map;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 public class X509CertificateCreator extends CommonAttributes {
 
+    private static final int DEFAULT_VALID_DAYS = 365;
+
+    @JCryptoAttr(required = true)
     private PrivateKey fPrivateKey;
+    @JCryptoAttr(required = true)
     private String fSigningAlgorithm;
+    @JCryptoAttr
     private X500Name fIssuer;
+    @JCryptoAttr
     private X500Name fSubject;
+    @JCryptoAttr
     private Date fValidityStart;
+    @JCryptoAttr
     private Date fValidityEnd;
 
     private X509CertificateCreator(String provider, SecureRandom secureRandom, PrivateKey privateKey,
@@ -44,18 +55,28 @@ public class X509CertificateCreator extends CommonAttributes {
 
     public X509Certificate create(PublicKey publicKey) throws OperatorCreationException, CertificateException {
 
-        KeyPairCreator.Builder builder = new KeyPairCreator.Builder();
+        if (publicKey == null)
+            throw new IllegalArgumentException("Public Key is not specified to create X509Certificate");
+
         byte[] encodedPublicKey = publicKey.getEncoded();
 
         X509v3CertificateBuilder v3CertBuild =
                 new X509v3CertificateBuilder(fIssuer, new BigInteger(String.valueOf(RandomUtils.nextLong())),
-                        fValidityStart, fValidityEnd, fSubject,
+                        defaultIfNull(fValidityStart, new Date()),
+                        defaultIfNull(fValidityEnd, JCryptoUtil.daysFromNow(365)), fSubject,
                         SubjectPublicKeyInfo.getInstance(ASN1Sequence.getInstance(encodedPublicKey)));
 
-        ContentSigner sigGen = new JcaContentSignerBuilder(fSigningAlgorithm)
-                /*.setProvider("BC")*/.build(fPrivateKey);
+        JcaContentSignerBuilder jcaContentSignerBuilder = new JcaContentSignerBuilder(fSigningAlgorithm);
+        if (fSecureRandom != null)
+            jcaContentSignerBuilder.setSecureRandom(fSecureRandom);
+        if (fProvider != null)
+            jcaContentSignerBuilder.setProvider(fProvider);
+        ContentSigner sigGen = jcaContentSignerBuilder.build(fPrivateKey);
+        JcaX509CertificateConverter jcaX509CertificateConverter = new JcaX509CertificateConverter();
+        if (fProvider != null)
+            jcaX509CertificateConverter.setProvider(fProvider);
 
-        return new JcaX509CertificateConverter()./*setProvider("BC").*/getCertificate(v3CertBuild.build(sigGen));
+        return jcaX509CertificateConverter.getCertificate(v3CertBuild.build(sigGen));
     }
 
     public void store(PublicKey publicKey, String targetDir, String fileName, JCryptoUtil.KeyFormat format)
@@ -108,6 +129,7 @@ public class X509CertificateCreator extends CommonAttributes {
         }
 
         public X509CertificateCreator build() {
+            checkDefaults();
             return new X509CertificateCreator(fProvider, fSecureRandom, fPrivateKey, fSigningAlgorithm,
                     fIssuer, fSubject, fValidityStart, fValidityEnd);
         }
@@ -115,13 +137,14 @@ public class X509CertificateCreator extends CommonAttributes {
         @Override
         protected void checkDefaults() {
             if (fPrivateKey == null)
-                throw new IllegalArgumentException("Provate Key is not specified to create Certificate");
+                throw new IllegalArgumentException("Private Key is not specified to create Certificate");
             if (fSigningAlgorithm == null)
                 throw new IllegalArgumentException("Signing Algorithm is not specified to create Certificate");
-            if (fSubject == null)
-                throw new IllegalArgumentException("One or more X500Name of Subject are not specified to create Certificate");
-            if (fIssuer == null)
-                throw new IllegalArgumentException("One or more X500Name of Issuer are not specified to create Certificate");
+
+            fValidityStart = defaultIfNull(fValidityStart, new Date());
+            fValidityEnd = defaultIfNull(fValidityEnd, JCryptoUtil.daysFrom(fValidityStart, DEFAULT_VALID_DAYS));
+            fSubject = defaultIfNull(fSubject, JCryptoUtil.emptyAttrMap());
+            fIssuer = defaultIfNull(fIssuer, JCryptoUtil.emptyAttrMap());
         }
     }
 }
