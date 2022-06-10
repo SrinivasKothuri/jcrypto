@@ -1,23 +1,12 @@
 package org.jcrypto.pki;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jcrypto.util.JCryptoUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.util.Base64;
-
-import static org.jcrypto.util.JCryptoUtil.KeyFormat.DER;
 
 public class KeyPairCreator extends CommonAttributes {
     private final int fKeySize;
