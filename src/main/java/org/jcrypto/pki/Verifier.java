@@ -2,7 +2,6 @@ package org.jcrypto.pki;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jcrypto.annotations.JCryptoAttr;
-import sun.misc.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,8 +39,16 @@ public class Verifier extends CommonAttributes.Builder {
 			signature = Signature.getInstance(fAlgorithm);
 
 		signature.initVerify(fPublicKey);
-		byte[] bytes = IOUtils.readAllBytes(inputStream);
-		signature.update(bytes);
+		byte[] buffer = new byte[4096];
+		int read;
+
+		try {
+			while ((read = inputStream.read(buffer)) >= 0)
+				signature.update(buffer, 0, read);
+		}
+		finally {
+			inputStream.close();
+		}
 		return signature.verify(signatureBytes);
 	}
 

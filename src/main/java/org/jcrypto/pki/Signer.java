@@ -44,21 +44,15 @@ public class Signer extends CommonAttributes.Builder {
 		else
 			signature.initSign(fPrivateKey);
 
-		BufferedInputStream tempBufferedStream;
-		if (inputStream instanceof BufferedInputStream)
-			tempBufferedStream = (BufferedInputStream) inputStream;
-		else
-			tempBufferedStream = new BufferedInputStream(inputStream);
-
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[4096];
 		int read;
 
 		try {
-			while ((read = tempBufferedStream.read(buffer)) >= 0)
+			while ((read = inputStream.read(buffer)) >= 0)
 				signature.update(buffer, 0, read);
 		}
 		finally {
-			tempBufferedStream.close();
+			inputStream.close();
 		}
 		return signature.sign();
 	}
