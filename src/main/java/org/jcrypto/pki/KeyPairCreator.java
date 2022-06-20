@@ -58,6 +58,8 @@ public class KeyPairCreator extends CommonAttributes {
 
         @Override
         protected void checkDefaults() {
+            if (fKeySize <= 0)
+                throw new IllegalArgumentException("Invalid key size is specified to generate Keys");
             if (StringUtils.isBlank(fAlgorithm))
                 throw new IllegalArgumentException("Algorithm is not be specified to generate Keys");
         }

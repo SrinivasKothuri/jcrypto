@@ -117,6 +117,7 @@ public class JCryptoUtil {
         else {
             StringWriter writer = new StringWriter();
             writer.write(prefix);
+            writer.write(System.lineSeparator());
             writer.write(Base64.getMimeEncoder(64, System.lineSeparator().getBytes(StandardCharsets.UTF_8))
                     .encodeToString(encoded));
             writer.write(System.lineSeparator());
