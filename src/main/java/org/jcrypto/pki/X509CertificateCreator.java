@@ -9,7 +9,6 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.jcrypto.annotations.JCryptoAttr;
 import org.jcrypto.util.JCryptoUtil;
 
 import java.io.IOException;
@@ -28,17 +27,11 @@ public class X509CertificateCreator extends CommonAttributes {
 
     private static final int DEFAULT_VALID_DAYS = 365;
 
-    @JCryptoAttr(required = true)
     private PrivateKey fPrivateKey;
-    @JCryptoAttr(required = true)
     private String fSigningAlgorithm;
-    @JCryptoAttr
     private X500Name fIssuer;
-    @JCryptoAttr
     private X500Name fSubject;
-    @JCryptoAttr
     private Date fValidityStart;
-    @JCryptoAttr
     private Date fValidityEnd;
 
     private X509CertificateCreator(String provider, SecureRandom secureRandom, PrivateKey privateKey,

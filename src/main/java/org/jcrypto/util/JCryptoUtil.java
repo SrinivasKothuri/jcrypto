@@ -14,7 +14,6 @@ import org.joda.time.MutableDateTime;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
@@ -28,8 +27,15 @@ public class JCryptoUtil {
 
     public static final String CERT_PREFIX = "-----BEGIN CERTIFICATE-----";
     public static final String CERT_SUFFIX = "-----END CERTIFICATE-----";
-    public static final String KEY_PREFIX = "-----BEGIN RSA PRIVATE KEY-----";
-    public static final String KEY_SUFFIX = "-----END RSA PRIVATE KEY-----";
+
+    public static final String PUB_KEY_PREFIX = "-----BEGIN RSA PUBLIC KEY-----";
+    public static final String PUB_KEY_SUFFIX = "-----END RSA PUBLIC KEY-----";
+
+    public static final String PRIVATE_KEY_PREFIX = "-----BEGIN RSA PRIVATE KEY-----";
+    public static final String PRIVATE_KEY_SUFFIX = "-----END RSA PRIVATE KEY-----";
+
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final String WRAPPED_FORMAT = "%s" + LINE_SEPARATOR + "%s" + LINE_SEPARATOR + "%s";
 
     private static final ImmutableMap<CertAttr, String> EMPTY_NAME =
             ImmutableMap.of(CertAttr.CN, EMPTY, CertAttr.C, EMPTY, CertAttr.O, EMPTY);
@@ -97,34 +103,69 @@ public class JCryptoUtil {
         store(sourceDir, fileName, KeyFormat.PEM, encoded, CERT_PREFIX, CERT_SUFFIX);
     }
 
-    public static void storePEMKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
-        store(sourceDir, fileName, KeyFormat.PEM, encoded, KEY_PREFIX, KEY_SUFFIX);
+    public static void storePrivateKey(KeyFormat format, String sourceDir, String fileName, byte[] encoded)
+            throws IOException {
+        if (format == KeyFormat.PEM)
+            storePEMPrivateKey(sourceDir, fileName, encoded);
+        else
+            storeDERPrivateKey(sourceDir, fileName, encoded);
+    }
+
+    public static void storePublicKey(KeyFormat format, String sourceDir, String fileName, byte[] encoded)
+            throws IOException {
+        if (format == KeyFormat.PEM)
+            storePEMPublicKey(sourceDir, fileName, encoded);
+        else
+            storeDERPublicKey(sourceDir, fileName, encoded);
+    }
+
+    public static void storePEMPrivateKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.PEM, encoded, PRIVATE_KEY_PREFIX, PRIVATE_KEY_SUFFIX);
+    }
+
+    public static void storePEMPublicKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.PEM, encoded, PUB_KEY_PREFIX, PUB_KEY_SUFFIX);
     }
 
     public static void storeDERCertificate(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.DER, encoded, null, null);
+    }
+
+    public static void storeDERPrivateKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
+        store(sourceDir, fileName, KeyFormat.DER, encoded, null, null);
+    }
+
+    public static void storeDERPublicKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
         store(sourceDir, fileName, KeyFormat.PEM, encoded, null, null);
     }
 
-    public static void storeDERKey(String sourceDir, String fileName, byte[] encoded) throws IOException {
-        store(sourceDir, fileName, KeyFormat.PEM, encoded, null, null);
-    }
-
-    public static void store(String sourceDir, String fileName, JCryptoUtil.KeyFormat publicKeyFormat, byte[] encoded,
+    public static void store(String sourceDir, String fileName, KeyFormat publicKeyFormat, byte[] encoded,
                            String prefix, String suffix) throws IOException {
         FileOutputStream keyFile = new FileOutputStream(new File(sourceDir, fileName));
-        if (publicKeyFormat == KeyFormat.DER)
+        if (publicKeyFormat == KeyFormat.DER) {
             IOUtils.write(encoded, keyFile);
-        else {
-            StringWriter writer = new StringWriter();
-            writer.write(prefix);
-            writer.write(System.lineSeparator());
-            writer.write(Base64.getMimeEncoder(64, System.lineSeparator().getBytes(StandardCharsets.UTF_8))
-                    .encodeToString(encoded));
-            writer.write(System.lineSeparator());
-            writer.write(suffix);
-            IOUtils.write(writer.toString(), keyFile, StandardCharsets.UTF_8);
+            return;
         }
+        String content = String.format(WRAPPED_FORMAT, prefix, makePEM(encoded), suffix);
+        IOUtils.write(content, keyFile, StandardCharsets.UTF_8);
         IOUtils.closeQuietly(keyFile);
+    }
+
+    public static String makePEM(byte[] content) {
+        return Base64.getMimeEncoder(64, System.lineSeparator().getBytes(StandardCharsets.UTF_8))
+                .encodeToString(content);
+    }
+
+    public static byte[] decodePEM(String encoded) {
+        return Base64.getMimeDecoder().decode(encoded);
+    }
+
+    public static String makePrivatePEM(byte[] content) {
+        return String.format(WRAPPED_FORMAT, PRIVATE_KEY_PREFIX, makePEM(content), PRIVATE_KEY_SUFFIX);
+    }
+
+    public static String makePublicPEM(byte[] content) {
+        return String.format(WRAPPED_FORMAT, PUB_KEY_PREFIX, makePEM(content), PUB_KEY_SUFFIX);
     }
 
     public static Date daysFrom(Date startDate, int days) {

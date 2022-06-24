@@ -1,9 +1,7 @@
 package org.jcrypto.pki;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jcrypto.annotations.JCryptoAttr;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
@@ -15,9 +13,7 @@ import java.security.SignatureException;
 
 public class Signer extends CommonAttributes.Builder {
 
-	@JCryptoAttr(required = true)
 	private String fAlgorithm;
-	@JCryptoAttr(required = true)
 	private PrivateKey fPrivateKey;
 
 	public Signer privateKey(PrivateKey privateKey) {

@@ -1,8 +1,9 @@
 package org.jcrypto.pki;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jcrypto.annotations.JCryptoAttr;
+import org.jcrypto.util.JCryptoUtil;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -10,9 +11,7 @@ import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 
 public class KeyPairCreator extends CommonAttributes {
-    @JCryptoAttr(required = true)
     private final int fKeySize;
-    @JCryptoAttr(required = true)
     private final String fAlgorithm;
 
     private KeyPairCreator(String algorithm, String provider, int fKeySize, SecureRandom secureRandom) {
@@ -35,6 +34,18 @@ public class KeyPairCreator extends CommonAttributes {
                 keyGen.initialize(fKeySize);
         }
         return keyGen.generateKeyPair();
+    }
+
+    public void store(String targetDir, String pubFileName, JCryptoUtil.KeyFormat pubFormat, String privFileName,
+                      JCryptoUtil.KeyFormat privFormat)
+            throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+        KeyPair keyPair = create();
+
+        byte[] content = keyPair.getPrivate().getEncoded();
+        JCryptoUtil.storePrivateKey(privFormat, targetDir, privFileName, content);
+
+        content = keyPair.getPrivate().getEncoded();
+        JCryptoUtil.storePublicKey(pubFormat, targetDir, pubFileName, content);
     }
 
     public static class Builder extends CommonAttributes.Builder {
