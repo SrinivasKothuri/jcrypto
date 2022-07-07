@@ -1,4 +1,4 @@
-# jCrypto
+# jCrypto (Work in progress)
 jCrypto provides a more readable Java API in Builder-pattern to create/validate/update PKI and Symmetric keys and KeyStores. jCrypto aims to provide the keytool/openssl's command line options to be provided in a programatic way. It doesn't rely on the `com.sun.*` classes that are JVM specific and limited visibility, instead it relys on BouncyCastle PKIX utilities to generate X509 certtificates. 
 
 ### Example:
