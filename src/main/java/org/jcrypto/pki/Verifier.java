@@ -11,7 +11,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
-public class Verifier extends CommonAttributes.Builder {
+public class Verifier extends CommonAttributes.Builder<Verifier> {
 
 	private String fAlgorithm;
 	private PublicKey fPublicKey;

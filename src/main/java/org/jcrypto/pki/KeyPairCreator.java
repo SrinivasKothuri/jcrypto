@@ -48,7 +48,7 @@ public class KeyPairCreator extends CommonAttributes {
         JCryptoUtil.storePublicKey(pubFormat, targetDir, pubFileName, content);
     }
 
-    public static class Builder extends CommonAttributes.Builder {
+    public static class Builder extends CommonAttributes.Builder<Builder> {
         private int fKeySize;
         private String fAlgorithm;
 

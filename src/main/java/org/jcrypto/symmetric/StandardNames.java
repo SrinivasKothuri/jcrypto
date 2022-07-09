@@ -8,6 +8,6 @@ public class StandardNames {
 		NONE, CBC, CFB, CFBx, CTR, CTS, ECB, OFB, OFBx, PCBC
 	}
 	public enum CipherAlgorithmPadding {
-		NoPadding, ISO10126Padding, OAEPPadding, PKCS1Padding, PKCS5Padding, SSL3Padding, OAEPPadding
+		NoPadding, ISO10126Padding, OAEPPadding, PKCS1Padding, PKCS5Padding, SSL3Padding
 	}
 }

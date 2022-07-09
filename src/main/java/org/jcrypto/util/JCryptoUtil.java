@@ -15,6 +15,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
@@ -182,5 +186,42 @@ public class JCryptoUtil {
 
     public static X500Name emptyAttrMap() {
         return createNameFromMap(EMPTY_NAME);
+    }
+
+    public static Map read(X509Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
+        Map<String, Object> certDetails = new HashMap<>();
+
+        Map<CertAttr, String> subjectAttrs = parseX509Name(certificate.getSubjectDN().getName());
+        Map<CertAttr, String> issuerAttrs = parseX509Name(certificate.getIssuerDN().getName());
+
+        certDetails.put("subject_str", certificate.getSubjectDN().getName());
+        certDetails.put("subject", subjectAttrs);
+        certDetails.put("issuer_str", certificate.getIssuerX500Principal().getName());
+        certDetails.put("issuer", issuerAttrs);
+
+        //certDetails.put("content", makePEM(certificate.getEncoded()));
+        Map<String, String> fingerPrints = new HashMap<>();
+        byte[] sha1 = MessageDigest.getInstance("SHA-1").digest(certificate.getEncoded());
+        byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(certificate.getEncoded());
+        fingerPrints.put("SHA-1", toHex(sha1));
+        fingerPrints.put("SHA-256", toHex(sha256));
+        certDetails.put("fingerprint", fingerPrints);
+
+        certDetails.put("valid_from", certificate.getNotBefore());
+        certDetails.put("valid_till", certificate.getNotAfter());
+
+        certDetails.put("signature_algo", certificate.getSigAlgName());
+        certDetails.put("serial_number", certificate.getSerialNumber());
+        certDetails.put("version", certificate.getVersion());
+
+        return certDetails;
+    }
+
+    public static String toHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte aByte : bytes)
+            result.append(String.format("%02X", aByte));
+
+        return result.toString();
     }
 }

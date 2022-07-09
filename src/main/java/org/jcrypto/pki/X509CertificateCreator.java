@@ -64,6 +64,7 @@ public class X509CertificateCreator extends CommonAttributes {
             jcaContentSignerBuilder.setSecureRandom(fSecureRandom);
         if (fProvider != null)
             jcaContentSignerBuilder.setProvider(fProvider);
+
         ContentSigner sigGen = jcaContentSignerBuilder.build(fPrivateKey);
         JcaX509CertificateConverter jcaX509CertificateConverter = new JcaX509CertificateConverter();
         if (fProvider != null)
@@ -83,7 +84,7 @@ public class X509CertificateCreator extends CommonAttributes {
             JCryptoUtil.storeDERCertificate(targetDir, fileName, encoded);
     }
 
-    public static class Builder extends CommonAttributes.Builder {
+    public static class Builder extends CommonAttributes.Builder<Builder> {
         private PrivateKey fPrivateKey;
         private String fSigningAlgorithm;
         private X500Name fIssuer;

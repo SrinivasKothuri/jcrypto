@@ -11,7 +11,7 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
-public class Signer extends CommonAttributes.Builder {
+public class Signer extends CommonAttributes.Builder<Signer> {
 
 	private String fAlgorithm;
 	private PrivateKey fPrivateKey;

@@ -12,18 +12,18 @@ public class CommonAttributes {
         fSecureRandom = secureRandom;
     }
 
-    public abstract static class Builder {
+    public abstract static class Builder<T> {
         protected String fProvider;
         protected SecureRandom fSecureRandom;
 
-        public Builder withProvider(String provider) {
+        public T _withProvider(String provider) {
             fProvider = provider;
-            return this;
+            return (T) this;
         }
 
-        public Builder withSecureRandom(SecureRandom random) {
+        public T _withSecureRandom(SecureRandom random) {
             fSecureRandom = random;
-            return this;
+            return (T) this;
         }
 
         protected abstract void checkDefaults();

@@ -21,15 +21,29 @@ public class CertChainTest {
 		KeyPair rootKeyPair = new KeyPairCreator.Builder().withAlgorithm("RSA").withKeySize(2048).build().create();
 		KeyPair childKeyPair = new KeyPairCreator.Builder().withAlgorithm("RSA").withKeySize(2048).build().create();
 
-		X509Certificate x509Certificate = new X509CertificateCreator.Builder()
+		X509Certificate rootX509Certificate = new X509CertificateCreator.Builder()
 				.withPrivateKey(rootKeyPair.getPrivate())
 				.withSigningAlgorithm("SHA256withRSA")
-				.withIssuer(EMPTY_NAME)
-				.withSubject(EMPTY_NAME)
+				.withIssuer(ImmutableMap.of(CertAttr.CN, "skothuri", CertAttr.C, "IN", CertAttr.O, "SN"))
+				.withSubject(ImmutableMap.of(CertAttr.CN, "skothuri", CertAttr.C, "IN", CertAttr.O, "SN"))
+				.withValidityStart(new Date())
+				.withValidityEnd(JCryptoUtil.daysFromNow(365))
+				.build().create(rootKeyPair.getPublic());
+
+		X509Certificate childX509Certificate = new X509CertificateCreator.Builder()
+				.withPrivateKey(rootKeyPair.getPrivate())
+				.withSigningAlgorithm("SHA256withRSA")
+				.withIssuer(ImmutableMap.of(CertAttr.CN, "skothuri", CertAttr.C, "IN", CertAttr.O, "SN"))
+				.withSubject(ImmutableMap.of(CertAttr.CN, "localhost", CertAttr.C, "IN", CertAttr.O, "SN"))
 				.withValidityStart(new Date())
 				.withValidityEnd(JCryptoUtil.daysFromNow(365))
 				.build().create(childKeyPair.getPublic());
 
-		x509Certificate.verify(rootKeyPair.getPublic());
+		childX509Certificate.verify(rootKeyPair.getPublic());
+
+		String destDir = "/Users/srinivas.kothuri/Desktop/certs";
+		JCryptoUtil.storePEMCertificate(destDir, "root.cer", rootX509Certificate.getEncoded());
+		JCryptoUtil.storePEMCertificate(destDir, "child.cer", childX509Certificate.getEncoded());
+		JCryptoUtil.storePEMPrivateKey(destDir, "child.key", childKeyPair.getPrivate().getEncoded());
 	}
 }
